@@ -42,3 +42,41 @@ map.on("click", function(e) {
     document.getElementById("ridesContent").classList.remove("hidden");
   }
 });
+
+// RNG stuff
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getRandomCost(min, max) {
+  return (Math.random() * (max - min) + min).toFixed(2);
+}
+
+// Randomize ride
+function randomizeRides() {
+  const rides = document.querySelectorAll(".riders");
+
+  rides.forEach(ride => {
+    const rateElement = ride.querySelector("p:nth-child(2)");
+    const driversElement = ride.querySelector("p:nth-child(3)");
+
+    // Driver range: 0–5
+    const randomDrivers = getRandomInt(0, 5);
+
+    if (driversElement) {
+      driversElement.textContent = `Drivers: ${randomDrivers}`;
+    }
+
+    // Check drivers
+    if (randomDrivers === 0) {
+      rateElement.textContent = "Rate: $0.00";
+    } else {
+      // RNG price for the range
+      const minCost = getRandomInt(10, 25);   // lower
+      const maxCost = getRandomInt(minCost + 1, 30); // higher
+      rateElement.textContent = `Rate: $${minCost} - $${maxCost}`;
+    }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", randomizeRides);
