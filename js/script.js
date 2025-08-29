@@ -1,4 +1,4 @@
-// Hamburger menu
+// ---------------- Hamburger Menu ----------------
 const hamburger = document.getElementById("hamburger");
 const navMenu = document.querySelector("nav ul");
 if (hamburger) {
@@ -7,7 +7,7 @@ if (hamburger) {
   });
 }
 
-// Utility RNG
+// ---------------- Utility RNG ----------------
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -49,21 +49,23 @@ if (document.getElementById("map") && document.getElementById("ridesContent")) {
   function randomizeRides() {
     const rides = document.querySelectorAll(".riders");
     rides.forEach((ride) => {
-      const rateElement = ride.querySelector("p:nth-child(3)");
       const driversElement = ride.querySelector("p:nth-child(2)");
+      const rateElement = ride.querySelector("p:nth-child(3)");
 
-      const driverCount = getRandomInt(0, 5);
-      if (driversElement) driversElement.textContent = `Drivers: ${driverCount}`;
+      const driverCount = getRandomInt(1, 5); // 1–5 drivers
+      driversElement.textContent = `Drivers: ${driverCount}`;
 
-      if (rateElement) {
-        if (driverCount === 0) {
-          rateElement.textContent = "Rate: $0.00";
-        } else {
-          const minCost = getRandomInt(10, 20);
-          const maxCost = getRandomInt(minCost + 1, 30);
-          rateElement.textContent = `Rate: $${minCost} - $${maxCost}`;
-        }
+      // Price range
+      const prices = [];
+      for (let i = 0; i < driverCount; i++) {
+        prices.push((Math.random() * 20 + 10).toFixed(2)); // $10–30
       }
+      ride.dataset.prices = JSON.stringify(prices);
+
+      // Show overall range
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      rateElement.textContent = driverCount > 1 ? `Rate: $${minPrice} - $${maxPrice}` : `Rate: $${prices[0]}`;
     });
   }
   randomizeRides();
@@ -74,15 +76,8 @@ if (document.getElementById("map") && document.getElementById("ridesContent")) {
       if (points.length === 2) {
         const start = points[0];
         const dest = points[1];
-        const driversText = ride.querySelector("p:nth-child(2)").textContent;
-        const rateText = ride.querySelector("p:nth-child(3)").textContent;
-        const driverCount = parseInt(driversText.split(":")[1].trim());
-        const [minRate, maxRate] = rateText
-          .split("$")[1]
-          .split(" - ")
-          .map(Number);
-
-        window.location.href = `ride.html?id=${index}&startLat=${start.lat}&startLng=${start.lng}&destLat=${dest.lat}&destLng=${dest.lng}&driverCount=${driverCount}&minRate=${minRate}&maxRate=${maxRate}`;
+        const prices = ride.dataset.prices;
+        window.location.href = `ride.html?id=${index}&startLat=${start.lat}&startLng=${start.lng}&destLat=${dest.lat}&destLng=${dest.lng}&prices=${prices}`;
       }
     });
   });
@@ -96,9 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const startLng = parseFloat(params.get("startLng")) || 103.8198;
     const destLat = parseFloat(params.get("destLat")) || 1.3521;
     const destLng = parseFloat(params.get("destLng")) || 103.8198;
-    const driverCount = parseInt(params.get("driverCount")) || 0;
-    const minRate = parseFloat(params.get("minRate")) || 10;
-    const maxRate = parseFloat(params.get("maxRate")) || 30;
+    const prices = JSON.parse(params.get("prices") || "[]");
 
     const rideMap = L.map("rideMap").setView([startLat, startLng], 14);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -106,45 +99,56 @@ document.addEventListener("DOMContentLoaded", () => {
       attribution: "© OpenStreetMap",
     }).addTo(rideMap);
 
+    // Start & Destination
     L.marker([startLat, startLng]).addTo(rideMap).bindPopup("Start").openPopup();
     L.marker([destLat, destLng]).addTo(rideMap).bindPopup("Destination");
     L.polyline([[startLat, startLng], [destLat, destLng]], { color: "blue" }).addTo(rideMap);
 
+    // Prepare drivers
+    const drivers = prices.map((p) => ({
+      price: parseFloat(p),
+      eta: getRandomInt(2, 12),
+    }));
+
+    // Sort by ETA
+    drivers.sort((a, b) => a.eta - b.eta);
+
+    // Custom car icon
+    const carIcon = L.icon({
+      iconUrl: "https://img.icons8.com/color/48/car.png",
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40],
+    });
+
+    // Display drivers on map
+    drivers.forEach((driver, i) => {
+      const offsetLat = (Math.random() - 0.5) * 0.01;
+      const offsetLng = (Math.random() - 0.5) * 0.01;
+      L.marker([startLat + offsetLat, startLng + offsetLng], { icon: carIcon })
+        .addTo(rideMap)
+        .bindPopup(`Driver ${i + 1} - $${driver.price} - ETA: ${driver.eta} mins`);
+    });
+
+    // Display car options
+    const carsDiv = document.getElementById("cars");
     const carImages = [
       "https://img.icons8.com/color/48/car.png",
       "https://img.icons8.com/color/48/taxi.png",
       "https://img.icons8.com/color/48/suv.png",
     ];
-
-    // Generate drivers with random price and ETA
-    let drivers = [];
-    for (let i = 0; i < driverCount; i++) {
-      drivers.push({
-        i: i + 1,
-        eta: getRandomInt(2, 12),
-        price: (Math.random() * (maxRate - minRate) + minRate).toFixed(2),
-        lat: startLat + (Math.random() - 0.5) * 0.01,
-        lng: startLng + (Math.random() - 0.5) * 0.01,
-      });
-    }
-
-    // Sort by ETA
-    drivers.sort((a, b) => a.eta - b.eta);
-
-    const carsDiv = document.getElementById("cars");
-
-    drivers.forEach((driver) => {
-      L.marker([driver.lat, driver.lng])
-        .addTo(rideMap)
-        .bindPopup(`Driver ${driver.i} - $${driver.price} - ETA: ${driver.eta} mins`);
-
+    drivers.forEach((driver, i) => {
+      const carImg = carImages[getRandomInt(0, carImages.length - 1)];
       const car = document.createElement("div");
-      car.classList.add("riders");
-      car.innerHTML = `<p>Driver ${driver.i}</p><p>Price: $${driver.price}</p><p>ETA: ${driver.eta} mins</p>`;
+      car.classList.add("car-card");
+      car.innerHTML = `
+        <img src="${carImg}" alt="car">
+        <p>Driver ${i + 1} - $${driver.price} - ETA: ${driver.eta} mins</p>
+      `;
       carsDiv.appendChild(car);
 
       car.addEventListener("click", () => {
-        window.location.href = `accepted.html?startLat=${startLat}&startLng=${startLng}&destLat=${destLat}&destLng=${destLng}&driver=${driver.i}&eta=${driver.eta}`;
+        window.location.href = `accepted.html?startLat=${startLat}&startLng=${startLng}&destLat=${destLat}&destLng=${destLng}&driver=${i + 1}&eta=${driver.eta}`;
       });
     });
   }
@@ -159,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const destLat = parseFloat(params.get("destLat"));
     const destLng = parseFloat(params.get("destLng"));
     const driverChosen = params.get("driver");
-    const eta = parseInt(params.get("eta")) || 5;
+    let countdown = parseInt(params.get("eta")) * 60 || 300; // in seconds
 
     const acceptedMap = L.map("acceptedMap").setView([startLat, startLng], 14);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -167,14 +171,23 @@ document.addEventListener("DOMContentLoaded", () => {
       attribution: "© OpenStreetMap",
     }).addTo(acceptedMap);
 
+    // Start & Destination markers
     L.marker([startLat, startLng]).addTo(acceptedMap).bindPopup("Start").openPopup();
     L.marker([destLat, destLng]).addTo(acceptedMap).bindPopup("Destination");
     L.polyline([[startLat, startLng], [destLat, destLng]], { color: "blue" }).addTo(acceptedMap);
 
-    const driverText = document.getElementById("driverChosen");
-    if (driverText) driverText.textContent = `Driver ${driverChosen} is on the way!`;
+    // Driver icon
+    const carIcon = L.icon({
+      iconUrl: "https://img.icons8.com/color/48/car.png",
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40],
+    });
 
-    let countdown = eta * 60;
+    L.marker([startLat, startLng], { icon: carIcon }).addTo(acceptedMap)
+      .bindPopup(`Driver ${driverChosen} is coming!`);
+
+    // Countdown timer
     const timerEl = document.getElementById("timer");
     const interval = setInterval(() => {
       if (countdown <= 0) {
