@@ -31,11 +31,20 @@
     <!-- Map for ride details -->
     <div id="rideMap" style="height:400px;"></div>
 
+    <!-- Sorting controls -->
+    <div class="sort-controls">
+      <label for="sortBy">Sort by:</label>
+      <select id="sortBy">
+        <option value="price">Lowest Price</option>
+        <option value="time" selected>Shortest Time</option>
+      </select>
+    </div>
+
     <!-- Car info list -->
     <div id="cars" class="cars-list"></div>
   </div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="js/script.js?v=1.0"></script>
+  <script src="js/script.js?v=1.1"></script>
 </body>
 </html>

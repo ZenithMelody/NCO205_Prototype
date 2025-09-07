@@ -105,13 +105,10 @@ document.addEventListener("DOMContentLoaded", () => {
     L.polyline([[startLat, startLng], [destLat, destLng]], { color: "blue" }).addTo(rideMap);
 
     // Prepare drivers
-    const drivers = prices.map((p) => ({
+    let drivers = prices.map((p) => ({
       price: parseFloat(p),
       eta: getRandomInt(2, 12),
     }));
-
-    // Sort by ETA
-    drivers.sort((a, b) => a.eta - b.eta);
 
     // Custom car icon
     const carIcon = L.icon({
@@ -121,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
       popupAnchor: [0, -40],
     });
 
-    // Display drivers on map
+    // Place random driver markers (static)
     drivers.forEach((driver, i) => {
       const offsetLat = (Math.random() - 0.5) * 0.01;
       const offsetLng = (Math.random() - 0.5) * 0.01;
@@ -137,20 +134,42 @@ document.addEventListener("DOMContentLoaded", () => {
       "https://img.icons8.com/color/48/taxi.png",
       "https://img.icons8.com/color/48/suv.png",
     ];
-    drivers.forEach((driver, i) => {
-      const carImg = carImages[getRandomInt(0, carImages.length - 1)];
-      const car = document.createElement("div");
-      car.classList.add("car-card");
-      car.innerHTML = `
-        <img src="${carImg}" alt="car">
-        <p>Driver ${i + 1} - $${driver.price} - ETA: ${driver.eta} mins</p>
-      `;
-      carsDiv.appendChild(car);
 
-      car.addEventListener("click", () => {
-        window.location.href = `accepted.html?startLat=${startLat}&startLng=${startLng}&destLat=${destLat}&destLng=${destLng}&driver=${i + 1}&eta=${driver.eta}`;
+    function renderDrivers(sortBy = "time") {
+      if (sortBy === "price") {
+        drivers.sort((a, b) => a.price - b.price);
+      } else {
+        drivers.sort((a, b) => a.eta - b.eta);
+      }
+
+      carsDiv.innerHTML = "";
+
+      drivers.forEach((driver, i) => {
+        const carImg = carImages[getRandomInt(0, carImages.length - 1)];
+        const car = document.createElement("div");
+        car.classList.add("car-card");
+        car.innerHTML = `
+          <img src="${carImg}" alt="car">
+          <p>Driver ${i + 1} - $${driver.price} - ETA: ${driver.eta} mins</p>
+        `;
+        carsDiv.appendChild(car);
+
+        car.addEventListener("click", () => {
+          window.location.href = `accepted.html?startLat=${startLat}&startLng=${startLng}&destLat=${destLat}&destLng=${destLng}&driver=${i + 1}&eta=${driver.eta}`;
+        });
       });
-    });
+    }
+
+    // Initial render (by time)
+    renderDrivers();
+
+    // Listen for sort changes
+    const sortBySelect = document.getElementById("sortBy");
+    if (sortBySelect) {
+      sortBySelect.addEventListener("change", (e) => {
+        renderDrivers(e.target.value);
+      });
+    }
   }
 });
 

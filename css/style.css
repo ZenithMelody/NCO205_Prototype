@@ -1,3 +1,4 @@
+/* Reset + Base Styles */
 * {
   margin: 0;
   padding: 0;
@@ -5,10 +6,13 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
   line-height: 1.6;
+  background: #f4f4f9;
+  color: #333;
 }
 
+/* Header + Navigation */
 header {
   background: #333;
   color: #fff;
@@ -22,7 +26,7 @@ nav {
 }
 
 nav .logo {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: bold;
 }
 
@@ -36,6 +40,7 @@ nav ul li a {
   color: #fff;
   text-decoration: none;
   transition: color 0.3s ease;
+  font-weight: 500;
 }
 
 nav ul li a:hover {
@@ -53,7 +58,7 @@ nav ul li a:hover {
   width: 25px;
   height: 3px;
   background: #fff;
-  margin: 5px;
+  margin: 5px 0;
   transition: 0.3s;
 }
 
@@ -65,9 +70,10 @@ nav ul li a:hover {
     right: 0;
     background: #333;
     flex-direction: column;
-    width: 200px;
+    width: 220px;
     display: none;
-    padding: 10px;
+    padding: 15px;
+    border-radius: 0 0 12px 12px;
   }
 
   nav ul.active {
@@ -79,6 +85,7 @@ nav ul li a:hover {
   }
 }
 
+/* Main Content */
 .content {
   width: 90%;
   max-width: 900px;
@@ -86,28 +93,61 @@ nav ul li a:hover {
   padding: 20px;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
 }
 
-#map, #rideMap, #acceptedMap {
+/* Map Styling */
+#map, 
+#rideMap, 
+#acceptedMap {
   width: 100%;
   aspect-ratio: 16 / 9;
   border-radius: 10px;
-  margin-top: 15px;
+  margin: 15px 0;
   min-height: 250px;
+  border: 2px solid #eee;
 }
 
-.riders, .car-card {
+/* Sorting Controls */
+.sort-controls {
+  margin: 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sort-controls label {
+  font-weight: 600;
+}
+
+.sort-controls select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+/* Ride + Car Cards */
+.riders, 
+.car-card {
   width: 100%;
   padding: 15px;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   margin: 10px 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 15px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.riders:hover, 
+.car-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
 }
 
 .car-card img {
@@ -115,13 +155,16 @@ nav ul li a:hover {
   height: 48px;
 }
 
+/* Utility */
 .hidden {
   display: none;
 }
 
+/* Timer */
 #timer {
   font-size: 1.2rem;
   font-weight: bold;
   text-align: center;
-  margin-top: 10px;
+  margin-top: 15px;
+  color: #444;
 }
